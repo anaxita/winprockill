@@ -22,7 +22,7 @@ func NewWinCommand(appName, procNamePattern string, nssm []byte) *WinCommand {
 }
 
 func (w *WinCommand) Processes(ctx context.Context) (processes []entity.WinProcess, err error) {
-	script := fmt.Sprintf("Get-Process -IncludeUserName | Where-Object {$_.ProcessName -Match \"%s\"} | Select Name, Id, UserName | ConvertTo-Json",
+	script := fmt.Sprintf(`"Get-Process -IncludeUserName | Where-Object {$_.ProcessName -Match "%s"} | Select Name, Id, UserName | ConvertTo-Json"`,
 		w.procNamePattern)
 	out, err := exec.CommandContext(ctx, "powershell", "/C", script).Output()
 	if err != nil {
@@ -34,7 +34,7 @@ func (w *WinCommand) Processes(ctx context.Context) (processes []entity.WinProce
 }
 
 func (w *WinCommand) KillProcesses(ctx context.Context) error {
-	script := fmt.Sprintf("Get-Process | Where-Object {$_.ProcessName -Match \"%s\"} | Stop-Process -Force",
+	script := fmt.Sprintf(`"Get-Process | Where-Object {$_.ProcessName -Match "%s"} | Stop-Process -Force"`,
 		w.procNamePattern)
 
 	return exec.CommandContext(ctx, "powershell", "/C", script).Run()
@@ -72,9 +72,7 @@ func (w *WinCommand) InstallAsService() error {
 	}
 
 	dir := path.Dir(f.Name())
-	script := fmt.Sprintf(`
-%s install ProcessKiller "%s/%s" AppDirectory "%s" && net start ProcessKiller
-`, f.Name(), dir, w.appName, dir)
+	script := fmt.Sprintf(`"%s install ProcessKiller "%s/%s" AppDirectory "%s" && net start ProcessKiller"`, f.Name(), dir, w.appName, dir)
 
 	return exec.Command("cmd", "/C", script).Run()
 }
