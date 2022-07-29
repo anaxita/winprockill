@@ -24,7 +24,7 @@ func NewWinCommand(appName, procNamePattern string, nssm []byte) *WinCommand {
 func (w *WinCommand) Processes(ctx context.Context) (processes []entity.WinProcess, err error) {
 	script := fmt.Sprintf(`"Get-Process -IncludeUserName | Where-Object {$_.ProcessName -Match "%s"} | Select Name, Id, UserName | ConvertTo-Json"`,
 		w.procNamePattern)
-	out, err := exec.CommandContext(ctx, "powershell", "/C", script).Output()
+	out, err := exec.CommandContext(ctx, "powershell", "-Command", script).Output()
 	if err != nil {
 		return
 	}
@@ -37,7 +37,7 @@ func (w *WinCommand) KillProcesses(ctx context.Context) error {
 	script := fmt.Sprintf(`"Get-Process | Where-Object {$_.ProcessName -Match "%s"} | Stop-Process -Force"`,
 		w.procNamePattern)
 
-	return exec.CommandContext(ctx, "powershell", "/C", script).Run()
+	return exec.CommandContext(ctx, "powershell", "-Command", script).Run()
 }
 
 func (w *WinCommand) InstallAsService() error {
