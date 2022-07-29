@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/css/bootstrap.min.css"
+          integrity="sha384-DhY6onE6f3zzKbjUPRc2hOzGAdEf4/Dz+WJwBvEYL/lkkIsI3ihufq9hk9K4lVoK" crossorigin="anonymous">
+    <!-- <link rel="stylesheet" href="/static/css/style.css"> -->
+    <title>КМ Системс - управление процессами</title>
+</head>
+
+<body>
+<div class="card">
+    <div class="card-header">
+        КМ Системс
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Запущенныe процессы 1С</h5>
+
+        <button type="button" id="killBtn" class="btn btn-outline-danger">Завершить все <span class="badge bg-primary"
+                                                                                              id="counter"></span></button>
+    </div>
+</div>
+<ul class="list-group" id="list-group">
+    <li class="list-group-item font-weight-bold">
+        <div class="row">
+            <div class="col-lg-2 col">Пользователь</div>
+            <div class="col-lg-2 col">Процесс</div>
+            <div class="col-lg-2 col">ID процесса</div>
+        </div>
+    </li>
+</ul>
+<div role="alert" id="alert">
+</div>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/js/bootstrap.bundle.min.js"
+        integrity="sha384-BOsAfwzjNJHrJ8cZidOg56tcQWfp6y72vEJ8xQ9w6Quywb24iOsW913URv1IS4GD"
+        crossorigin="anonymous"></script>
+
+<script>
+
+    let list = document.getElementById('list-group')
+    let counter = document.getElementById('counter')
+    let killBtn = document.getElementById('killBtn')
+    let alert = document.getElementById('alert')
+
+    killBtn.insertAdjacentHTML('beforeend', ` <span class="spinner-border spinner-border-sm" id="spinner" role="status" aria-hidden="true"></span>`)
+    killBtn.setAttribute('disabled', 'true')
+
+
+    fetch("/list")
+        .then(response => response.json())
+        .then(response => {
+            let spinner = document.getElementById('spinner')
+            killBtn.removeChild(spinner)
+            killBtn.disabled = false;
+
+            if (response.data != null) {
+                response.data.forEach(e => {
+                    list.insertAdjacentHTML('beforeend', `
+        <li class="list-group-item"><div class="row">
+        <div class="col-lg-2 col">${e.UserName}</div>
+        <div class="col-lg-2 col">${e.Name}</div>
+        <div class="col-lg-2 col">${e.Id}</div>
+      </div></li>
+        `)
+
+                });
+                counter.insertAdjacentHTML('beforeend', response.data.length)
+            } else if (response.error !== "") {
+                alert.setAttribute('class', 'alert alert-danger')
+                alert.innerHTML = response.error
+            } else {
+                counter.innerHTML = '0'
+                alert.setAttribute('class', 'alert alert-info')
+                alert.innerHTML = 'Процессов не найдено'
+            }
+
+        });
+
+    killBtn.onclick = function () {
+        killBtn.insertAdjacentHTML('beforeend', ` <span class="spinner-border spinner-border-sm" id="spinner" role="status" aria-hidden="true"></span>`)
+        killBtn.setAttribute('disabled', 'true')
+
+        fetch("/control")
+            .then(response => response.json())
+            .then(response => {
+                let spinner = document.getElementById('spinner')
+                killBtn.removeChild(spinner)
+
+                if (response.error !== "") {
+                    alert.setAttribute('class', 'alert alert-danger')
+                    alert.innerHTML = response.error
+                } else {
+                    counter.innerHTML = '0'
+                    alert.setAttribute('class', 'alert alert-success')
+                    alert.innerHTML = response.data
+                    list.innerHTML = `<li class="list-group-item font-weight-bold"><div class="row">
+                <div class="col-lg-2 col">Пользователь</div>
+                <div class="col-lg-2 col">Процесс</div>
+                <div class="col-lg-2 col">ID процесса</div>
+              </div></li>`
+                }
+            })
+    }
+</script>
+</body>
+</html>
