@@ -41,7 +41,7 @@ func (w *WinCommand) KillProcesses(ctx context.Context) error {
 }
 
 func (w *WinCommand) InstallAsService() error {
-	f, err := os.Create("nssm.exe")
+	f, err := os.Create("nssm1.exe")
 	if err != nil {
 		return err
 	}
@@ -49,12 +49,12 @@ func (w *WinCommand) InstallAsService() error {
 	defer func() {
 		err = f.Close()
 		if err != nil {
-			log.Println("close nssm.exe", err)
+			log.Println("close nssm1.exe", err)
 		}
 
 		err = os.Remove(f.Name())
 		if err != nil {
-			log.Println("remove nssm.exe", err)
+			log.Println("remove nssm1.exe", err)
 		}
 	}()
 
